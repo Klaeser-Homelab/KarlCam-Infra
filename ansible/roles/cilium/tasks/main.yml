@@ -49,8 +49,7 @@
         enabled: true
       
       # Configure for WiFi latency
-      agent:
-        healthPort: 9879
+      agentHealthPort: 9879
       
       operator:
         replicas: 1
