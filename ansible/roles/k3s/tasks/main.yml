@@ -18,8 +18,6 @@
     INSTALL_K3S_EXEC="server \
       --cluster-cidr={{ k3s_cluster_cidr }} \
       --service-cidr={{ k3s_service_cidr }} \
-      --flannel-backend=none \
-      --disable-network-policy \
       --disable traefik \
       --disable servicelb \
       --disable local-storage \

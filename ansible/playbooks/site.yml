@@ -19,14 +19,7 @@
     - k3s
     - cluster
 
-- name: Configure Cilium networking
-  hosts: control_plane[0]
-  become: yes
-  roles:
-    - cilium
-  tags:
-    - cilium
-    - networking
+# Cilium removed - using K3s default Flannel CNI instead
 
 - name: Deploy KarlCam infrastructure services
   hosts: control_plane[0]
