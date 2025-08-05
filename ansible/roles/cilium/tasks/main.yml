@@ -3,6 +3,8 @@
   kubernetes.core.helm_repository:
     name: cilium
     repo_url: https://helm.cilium.io/
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
 
 - name: Create Cilium values file
   copy:
@@ -81,6 +83,8 @@
       - /tmp/cilium-values.yaml
     wait: true
     wait_timeout: 10m
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
 
 - name: Wait for Cilium to be ready
   kubernetes.core.k8s_info:
@@ -94,6 +98,8 @@
       type: Ready
       status: "True"
     wait_timeout: 600
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
 
 - name: Install Cilium CLI
   get_url:
