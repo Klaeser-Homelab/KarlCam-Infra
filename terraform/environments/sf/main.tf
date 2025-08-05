@@ -18,36 +18,27 @@ provider "proxmox" {
   insecure = true
 }
 
-# Create cloud-init snippet for K3s optimization
-resource "proxmox_virtual_environment_file" "k3s_cloud_init" {
-  content_type = "snippets"
-  datastore_id = "snippets"
-  node_name    = var.proxmox_node
-  
-  source_raw {
-    data = <<-EOF
-      #cloud-config
-      package_upgrade: true
-      packages:
-        - curl
-        - wget
-        - git
-        - htop
-        - net-tools
-      runcmd:
-        - echo 'net.bridge.bridge-nf-call-iptables=1' >> /etc/sysctl.conf
-        - echo 'net.bridge.bridge-nf-call-ip6tables=1' >> /etc/sysctl.conf
-        - echo 'net.ipv4.ip_forward=1' >> /etc/sysctl.conf
-        - sysctl -p
-        - modprobe overlay
-        - modprobe br_netfilter
-        - echo 'overlay' >> /etc/modules-load.d/k8s.conf
-        - echo 'br_netfilter' >> /etc/modules-load.d/k8s.conf
-    EOF
-    
-    file_name = "k3s-cloud-init.yaml"
-  }
-}
+# Cloud-init snippet file must be created manually due to SSH auth issues
+# Create file at: /var/lib/vz/snippets/k3s-cloud-init.yaml
+# with the following content:
+#
+# #cloud-config
+# package_upgrade: true
+# packages:
+#   - curl
+#   - wget
+#   - git
+#   - htop
+#   - net-tools
+# runcmd:
+#   - echo 'net.bridge.bridge-nf-call-iptables=1' >> /etc/sysctl.conf
+#   - echo 'net.bridge.bridge-nf-call-ip6tables=1' >> /etc/sysctl.conf
+#   - echo 'net.ipv4.ip_forward=1' >> /etc/sysctl.conf
+#   - sysctl -p
+#   - modprobe overlay
+#   - modprobe br_netfilter
+#   - echo 'overlay' >> /etc/modules-load.d/k8s.conf
+#   - echo 'br_netfilter' >> /etc/modules-load.d/k8s.conf
 
 # K3s Control Plane Nodes
 module "k3s_control_plane" {
@@ -74,7 +65,7 @@ module "k3s_control_plane" {
   ssh_user       = var.ssh_user
   ssh_public_key = var.ssh_public_key
   
-  cloud_init_file_id = proxmox_virtual_environment_file.k3s_cloud_init.id
+  cloud_init_file_id = "snippets:snippets/k3s-cloud-init.yaml"
   boot_order         = 1
   tags              = ["k3s", "control-plane", "sf", "karlcam"]
 }
@@ -104,7 +95,7 @@ module "k3s_workers" {
   ssh_user       = var.ssh_user
   ssh_public_key = var.ssh_public_key
   
-  cloud_init_file_id = proxmox_virtual_environment_file.k3s_cloud_init.id
+  cloud_init_file_id = "snippets:snippets/k3s-cloud-init.yaml"
   boot_order         = 2
   tags              = ["k3s", "worker", "sf", "karlcam"]
 }
