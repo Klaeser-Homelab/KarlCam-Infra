@@ -16,7 +16,7 @@
       ipam:
         mode: kubernetes
       
-      kubeProxyReplacement: strict
+      kubeProxyReplacement: true
       
       clustermesh:
         useAPIServer: true
