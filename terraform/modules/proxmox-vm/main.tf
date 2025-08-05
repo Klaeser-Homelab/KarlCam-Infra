@@ -25,6 +25,10 @@ resource "proxmox_virtual_environment_vm" "node" {
     model  = "virtio"
   }
 
+  serial_device {
+    device = "socket"
+  }
+
   initialization {
     ip_config {
       ipv4 {
