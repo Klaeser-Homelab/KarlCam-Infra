@@ -113,3 +113,10 @@
     curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
   become: yes
   when: k3s_control_node is defined and k3s_control_node
+
+- name: Install Python kubernetes library
+  pip:
+    name: kubernetes
+    state: present
+  become: yes
+  when: k3s_control_node is defined and k3s_control_node
