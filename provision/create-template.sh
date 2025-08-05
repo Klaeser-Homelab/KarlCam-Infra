@@ -7,7 +7,7 @@ set -e
 TEMPLATE_ID=9000
 TEMPLATE_NAME="ubuntu-2204-k3s-template"
 STORAGE="local-lvm"
-UBUNTU_IMG="ubuntu-22.04-server-cloudimg-amd64.img"
+UBUNTU_IMG="jammy-server-cloudimg-amd64.img"
 UBUNTU_URL="https://cloud-images.ubuntu.com/jammy/current/${UBUNTU_IMG}"
 
 echo "Creating Ubuntu 22.04 template for K3s..."
