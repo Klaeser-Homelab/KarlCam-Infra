@@ -61,7 +61,7 @@ module "k3s_workers" {
   vm_description = "KarlCam K3s Worker ${count.index + 1} - SF Site"
   proxmox_node   = var.proxmox_node
   
-  cpu_cores    = 8
+  cpu_cores    = 4
   memory_mb    = 16384
   disk_size_gb = 100
   
