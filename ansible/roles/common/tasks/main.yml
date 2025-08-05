@@ -1,0 +1,91 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  become: yes
+
+- name: Install common packages
+  apt:
+    name:
+      - curl
+      - wget
+      - git
+      - vim
+      - htop
+      - iotop
+      - net-tools
+      - jq
+      - python3-pip
+      - nfs-common
+      - unzip
+      - software-properties-common
+      - apt-transport-https
+      - ca-certificates
+      - gnupg
+      - lsb-release
+    state: present
+  become: yes
+
+- name: Set timezone
+  timezone:
+    name: America/Los_Angeles
+  become: yes
+
+- name: Configure sysctl for Kubernetes
+  sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: yes
+  become: yes
+  loop:
+    - { key: 'net.bridge.bridge-nf-call-iptables', value: '1' }
+    - { key: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
+    - { key: 'net.ipv4.ip_forward', value: '1' }
+    - { key: 'vm.swappiness', value: '0' }
+    - { key: 'vm.overcommit_memory', value: '1' }
+    - { key: 'kernel.panic', value: '10' }
+    - { key: 'kernel.panic_on_oops', value: '1' }
+
+- name: Load required kernel modules
+  modprobe:
+    name: "{{ item }}"
+    state: present
+    persistent: yes
+  become: yes
+  loop:
+    - overlay
+    - br_netfilter
+
+- name: Configure WiFi optimization
+  lineinfile:
+    path: /etc/sysctl.conf
+    line: "{{ item }}"
+    create: yes
+  become: yes
+  loop:
+    - "net.core.rmem_max = 134217728"
+    - "net.core.wmem_max = 134217728"
+    - "net.ipv4.tcp_rmem = 4096 87380 134217728"
+    - "net.ipv4.tcp_wmem = 4096 65536 134217728"
+    - "net.ipv4.tcp_congestion_control = bbr"
+
+- name: Disable swap
+  shell: swapoff -a
+  become: yes
+
+- name: Remove swap from fstab
+  replace:
+    path: /etc/fstab
+    regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+    replace: '# \1'
+  become: yes
+
+- name: Create karlcam user
+  user:
+    name: karlcam
+    groups: docker
+    shell: /bin/bash
+    create_home: yes
+  become: yes

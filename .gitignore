@@ -1,0 +1,33 @@
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+.terraform.lock.hcl
+terraform.tfplan
+*.backup
+
+# Ansible
+ansible/inventories/*/hosts.yml
+*.retry
+
+# SSH Keys
+*.pem
+*.key
+kubeconfig-*
+
+# Sensitive data
+secrets/
+.env
+.vault-password
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

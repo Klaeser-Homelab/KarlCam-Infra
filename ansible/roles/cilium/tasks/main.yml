@@ -1,0 +1,121 @@
+---
+- name: Add Cilium Helm repository
+  kubernetes.core.helm_repository:
+    name: cilium
+    repo_url: https://helm.cilium.io/
+
+- name: Create Cilium values file
+  copy:
+    content: |
+      cluster:
+        name: {{ cluster_name }}
+        id: {{ cluster_id }}
+      
+      ipam:
+        mode: kubernetes
+      
+      kubeProxyReplacement: strict
+      
+      clustermesh:
+        useAPIServer: true
+        apiserver:
+          service:
+            type: LoadBalancer
+      
+      hubble:
+        enabled: true
+        relay:
+          enabled: true
+        ui:
+          enabled: true
+          service:
+            type: LoadBalancer
+      
+      encryption:
+        enabled: true
+        type: wireguard
+      
+      mtu: 1420
+      
+      # Optimize for distributed video processing
+      bpf:
+        preallocateMaps: true
+        mapDynamicSizeRatio: 0.25
+      
+      # Enable bandwidth manager for QoS
+      bandwidthManager:
+        enabled: true
+      
+      # Configure for WiFi latency
+      agent:
+        healthPort: 9879
+      
+      operator:
+        replicas: 1
+        
+      # Enable Envoy for load balancing
+      envoy:
+        enabled: true
+        
+      loadBalancer:
+        algorithm: round_robin
+        
+      # Enable metrics for monitoring
+      prometheus:
+        enabled: true
+        port: 9962
+        
+      # Configure for multi-site
+      externalIPs:
+        enabled: true
+        
+    dest: /tmp/cilium-values.yaml
+
+- name: Install Cilium
+  kubernetes.core.helm:
+    name: cilium
+    chart_ref: cilium/cilium
+    release_namespace: kube-system
+    create_namespace: true
+    values_files:
+      - /tmp/cilium-values.yaml
+    wait: true
+    wait_timeout: 10m
+
+- name: Wait for Cilium to be ready
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Pod
+    namespace: kube-system
+    label_selectors:
+      - k8s-app=cilium
+    wait: true
+    wait_condition:
+      type: Ready
+      status: "True"
+    wait_timeout: 600
+
+- name: Install Cilium CLI
+  get_url:
+    url: "https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-amd64.tar.gz"
+    dest: /tmp/cilium-cli.tar.gz
+  
+- name: Extract Cilium CLI
+  unarchive:
+    src: /tmp/cilium-cli.tar.gz
+    dest: /usr/local/bin/
+    remote_src: yes
+    owner: root
+    group: root
+    mode: '0755'
+  become: yes
+
+- name: Verify Cilium installation
+  shell: cilium status --wait
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: cilium_status
+  
+- name: Display Cilium status
+  debug:
+    msg: "{{ cilium_status.stdout }}"

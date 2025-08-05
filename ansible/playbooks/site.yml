@@ -1,0 +1,116 @@
+---
+- name: Prepare all nodes for KarlCam deployment
+  hosts: all
+  become: yes
+  gather_facts: yes
+  roles:
+    - common
+  tags:
+    - common
+    - preparation
+
+- name: Install K3s cluster
+  hosts: k3s_cluster
+  become: yes
+  serial: "{{ ansible_play_batch | length }}"
+  roles:
+    - k3s
+  tags:
+    - k3s
+    - cluster
+
+- name: Configure Cilium networking
+  hosts: control_plane[0]
+  become: yes
+  roles:
+    - cilium
+  tags:
+    - cilium
+    - networking
+
+- name: Deploy KarlCam infrastructure services
+  hosts: control_plane[0]
+  become: yes
+  tasks:
+    - name: Create KarlCam namespace
+      kubernetes.core.k8s:
+        name: karlcam
+        api_version: v1
+        kind: Namespace
+        state: present
+      environment:
+        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+    - name: Create monitoring namespace
+      kubernetes.core.k8s:
+        name: monitoring
+        api_version: v1
+        kind: Namespace
+        state: present
+      environment:
+        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+    - name: Add Prometheus Helm repository
+      kubernetes.core.helm_repository:
+        name: prometheus-community
+        repo_url: https://prometheus-community.github.io/helm-charts
+
+    - name: Install Prometheus stack
+      kubernetes.core.helm:
+        name: kube-prometheus-stack
+        chart_ref: prometheus-community/kube-prometheus-stack
+        release_namespace: monitoring
+        values:
+          grafana:
+            service:
+              type: LoadBalancer
+            adminPassword: karlcam-admin
+          prometheus:
+            prometheusSpec:
+              retention: 30d
+              storageSpec:
+                volumeClaimTemplate:
+                  spec:
+                    storageClassName: local-path
+                    accessModes:
+                      - ReadWriteOnce
+                    resources:
+                      requests:
+                        storage: 50Gi
+        wait: true
+        wait_timeout: 10m
+      environment:
+        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+  tags:
+    - karlcam
+    - monitoring
+
+- name: Validate deployment
+  hosts: control_plane[0]
+  become: yes
+  tasks:
+    - name: Check cluster status
+      shell: kubectl get nodes -o wide
+      environment:
+        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+      register: cluster_status
+
+    - name: Display cluster status
+      debug:
+        msg: "{{ cluster_status.stdout_lines }}"
+
+    - name: Check Cilium connectivity
+      shell: cilium connectivity test --single-node
+      environment:
+        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+      register: cilium_test
+      ignore_errors: yes
+
+    - name: Display connectivity test results
+      debug:
+        msg: "{{ cilium_test.stdout_lines }}"
+      when: cilium_test.stdout_lines is defined
+
+  tags:
+    - validation

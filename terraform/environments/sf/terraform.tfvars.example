@@ -1,0 +1,20 @@
+# Proxmox Configuration
+proxmox_api_url          = "https://10.0.0.35:8006/api2/json"
+proxmox_api_token_id     = "terraform@pve!terraform-token"
+proxmox_api_token_secret = "a6c9cf26-19fb-4407-8bcc-6edee0fc2371"
+
+# SSH Configuration
+ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC... your-ssh-public-key-here"
+
+# Infrastructure Configuration
+control_plane_count = 1
+worker_count       = 3
+proxmox_node      = "ami"
+
+# Network Configuration  
+gateway = "10.0.0.1"
+
+# Storage Configuration
+storage_pool    = "local-lvm"
+network_bridge  = "vmbr0"
+template_id     = "local:9000"
