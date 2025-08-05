@@ -17,4 +17,4 @@ gateway = "10.0.0.1"
 # Storage Configuration
 storage_pool    = "local-lvm"
 network_bridge  = "vmbr0"
-template_id     = "local:122"
+template_id     = "base-122-disk-0"
