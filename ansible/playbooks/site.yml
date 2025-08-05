@@ -34,46 +34,8 @@
       environment:
         KUBECONFIG: /etc/rancher/k3s/k3s.yaml
 
-    - name: Create monitoring namespace
-      kubernetes.core.k8s:
-        name: monitoring
-        api_version: v1
-        kind: Namespace
-        state: present
-      environment:
-        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
 
-    - name: Add Prometheus Helm repository
-      kubernetes.core.helm_repository:
-        name: prometheus-community
-        repo_url: https://prometheus-community.github.io/helm-charts
-
-    - name: Install Prometheus stack
-      kubernetes.core.helm:
-        name: kube-prometheus-stack
-        chart_ref: prometheus-community/kube-prometheus-stack
-        release_namespace: monitoring
-        values:
-          grafana:
-            service:
-              type: LoadBalancer
-            adminPassword: karlcam-admin
-          prometheus:
-            prometheusSpec:
-              retention: 30d
-              storageSpec:
-                volumeClaimTemplate:
-                  spec:
-                    storageClassName: local-path
-                    accessModes:
-                      - ReadWriteOnce
-                    resources:
-                      requests:
-                        storage: 50Gi
-        wait: true
-        wait_timeout: 10m
-      environment:
-        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+    # Prometheus monitoring removed - not needed for KarlCam fog detection
 
   tags:
     - karlcam
