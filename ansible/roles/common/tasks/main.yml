@@ -36,7 +36,7 @@
   modprobe:
     name: "{{ item }}"
     state: present
-    persistent: yes
+    persistent: present
   become: yes
   loop:
     - overlay
