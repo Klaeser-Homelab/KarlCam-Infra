@@ -59,7 +59,7 @@
         enabled: true
         
       loadBalancer:
-        algorithm: round_robin
+        algorithm: random
         
       # Enable metrics for monitoring
       prometheus:
