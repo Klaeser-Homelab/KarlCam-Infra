@@ -1,7 +1,7 @@
 # Proxmox Configuration
 proxmox_api_url          = "https://10.0.0.35:8006/api2/json"
-proxmox_api_token_id     = "terraform@pve!terraform-token"
-proxmox_api_token_secret = "a6c9cf26-19fb-4407-8bcc-6edee0fc2371"
+proxmox_api_token_id     = "user
+proxmox_api_token_secret = "password"
 
 # SSH Configuration
 ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC... your-ssh-public-key-here"
