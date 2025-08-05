@@ -82,6 +82,12 @@
     replace: '# \1'
   become: yes
 
+- name: Create docker group
+  group:
+    name: docker
+    state: present
+  become: yes
+
 - name: Create karlcam user
   user:
     name: karlcam
