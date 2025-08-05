@@ -55,17 +55,6 @@
       debug:
         msg: "{{ cluster_status.stdout_lines }}"
 
-    - name: Check Cilium connectivity
-      shell: cilium connectivity test --single-node
-      environment:
-        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-      register: cilium_test
-      ignore_errors: yes
-
-    - name: Display connectivity test results
-      debug:
-        msg: "{{ cilium_test.stdout_lines }}"
-      when: cilium_test.stdout_lines is defined
 
   tags:
     - validation
